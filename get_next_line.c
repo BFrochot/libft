@@ -5,123 +5,66 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: bfrochot <bfrochot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2016/11/14 13:46:26 by bfrochot          #+#    #+#             */
-/*   Updated: 2016/12/13 11:15:40 by bfrochot         ###   ########.fr       */
+/*   Created: 2016/11/13 13:36:51 by bfrochot          #+#    #+#             */
+/*   Updated: 2017/08/01 18:14:07 by bfrochot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-void	ft_fillit(char **line, char *buff, char *save, char *done)
+t_struct	*multi(t_struct **s, t_struct *e, int fd)
 {
-	int i;
-	int j;
-
-	save[0] = '\0';
-	i = 0;
-	while ((*line)[i])
-		++i;
-	j = -1;
-	while (buff[++j] && buff[j] != '\n')
-		(*line)[i + j] = buff[j];
-	(*line)[i + j] = '\0';
-	if (buff[j] == '\n')
+	if (*s == NULL)
 	{
-		*done = 0;
-		i = 0;
-		while (buff[j + 1])
-		{
-			save[i] = buff[j + 1];
-			++j;
-			++i;
-		}
-		save[i] = '\0';
+		if (!(*s = malloc(sizeof(t_struct))))
+			return (NULL + 1);
+		(*s)->fd = fd;
+		(*s)->bf[0] = 0;
+		(*s)->next = NULL;
 	}
-}
-
-char	ft_fill(char **line, char *buff, char *done)
-{
-	static char save[BUFF_SIZE + 1];
-	int			i;
-	int			j;
-
-	i = -1;
-	while (save[++i] && save[i] != '\n')
-		(*line)[i] = save[i];
-	if (save[0])
-		(*line)[i] = '\0';
-	if (save[i] == '\0')
+	e = *s;
+	while (e->fd != fd)
 	{
-		ft_fillit(line, buff, save, done);
+		if (!e->next)
+		{
+			if (!(e->next = malloc(sizeof(t_struct))))
+				return (NULL + 1);
+			e->next->fd = fd;
+			e->next->bf[0] = 0;
+			e->next->next = NULL;
+		}
+		e = e->next;
+	}
+	if (e->bf[0] == 0 && (e->ret = read(fd, e->bf, BUFF_SIZE)) == 0)
 		return (0);
-	}
-	else
-	{
-		j = 0;
-		while (save[++i])
-		{
-			save[j] = save[i];
-			++j;
-		}
-		save[j] = '\0';
-		return (1);
-	}
+	e->d = 0;
+	return (e);
 }
 
-char	*ft_alloc(char **line, int n)
+int			get_next_line(const int fd, char **line)
 {
-	char	*new;
-	int		i;
+	static t_struct	*s = NULL;
+	t_struct		*e;
 
-	new = malloc(BUFF_SIZE * n + 1);
-	i = 0;
-	while ((*line)[i])
+	if (line == NULL || (*line = ft_strdup("")) == 0)
+		return (-1);
+	if ((e = multi(&s, 0, fd)) == 0 || e == NULL + 1)
+		return (e == 0 ? 0 : -1);
+	while (e->d == 0)
 	{
-		new[i] = (*line)[i];
-		++i;
-	}
-	new[i] = '\0';
-	free(*line);
-	return (new);
-}
-
-int		ft_2long(const int fd, char **line, char *buff, char done)
-{
-	int	i;
-	int n;
-
-	n = 2;
-	while (done)
-	{
-		++n;
-		if ((i = read(fd, buff, BUFF_SIZE)) > 0)
-		{
-			buff[i] = '\0';
-			*line = ft_alloc(line, n);
-			ft_fill(line, buff, &done);
-		}
-		else if (i == 0 && (*line)[0] == '\0')
-			return (0);
-		else if (i == 0 && (*line)[0])
-			return (1);
-		else
+		if (e->bf[0] == 0)
+			if ((e->ret = read(fd, e->bf, BUFF_SIZE)) == -1)
+				return (-1);
+		e->bf[e->ret] = 0;
+		e->l = ft_strchr(e->bf, '\n') ? ft_strchr(e->bf, '\n') - e->bf
+		: ft_strlen(e->bf);
+		e->d = !e->bf[0] || ft_strchr(e->bf, '\n') ? 1 : 0;
+		ft_memcpy(e->tmp, e->bf, e->l);
+		e->tmp[e->l] = 0;
+		if (e->bf[0] != 0)
+			ft_memcpy(e->bf, e->bf + e->l + e->d, ft_strlen(e->bf) - e->l + 1);
+		if (!(*line = ft_strjoinfree(*line, e->tmp, 1)))
 			return (-1);
 	}
 	return (1);
-}
-
-int		get_next_line(const int fd, char **line)
-{
-	char buff[BUFF_SIZE + 1];
-	char done;
-
-	done = 1;
-	buff[0] = '\0';
-	if (line == NULL)
-		return (-1);
-	(*line) = malloc(BUFF_SIZE + 1);
-	(*line)[0] = '\0';
-	if (ft_fill(line, buff, &done))
-		return (1);
-	return (ft_2long(fd, line, buff, done));
 }

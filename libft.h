@@ -6,7 +6,7 @@
 /*   By: bfrochot <bfrochot@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2016/11/03 15:57:23 by bfrochot          #+#    #+#             */
-/*   Updated: 2017/07/12 14:55:39 by bfrochot         ###   ########.fr       */
+/*   Updated: 2017/08/01 18:13:48 by bfrochot         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,19 @@
 # include <stdlib.h>
 # include <string.h>
 # include <stdio.h>
+# include <fcntl.h>
 # define BUFF_SIZE 200
+
+typedef struct	s_struct
+{
+	int				fd;
+	int				ret;
+	int				l;
+	char			d;
+	char			bf[BUFF_SIZE + 1];
+	char			tmp[BUFF_SIZE + 1];
+	struct s_struct	*next;
+}				t_struct;
 
 typedef struct	s_list
 {
@@ -92,4 +104,5 @@ int				ft_recursive_factorial(int nb);
 int				get_next_line(const int fd, char **line);
 void			*palloc(int i);
 char			*ft_strjoinfree(char *s1, char *s2, char c);
+
 #endif
