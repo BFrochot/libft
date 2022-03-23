@@ -17,7 +17,7 @@ t_struct	*multi(t_struct **s, t_struct *e, int fd)
 	if (*s == NULL)
 	{
 		if (!(*s = malloc(sizeof(t_struct))))
-			return (NULL + 1);
+			return ((t_struct *)1);
 		(*s)->fd = fd;
 		(*s)->bf[0] = 0;
 		(*s)->next = NULL;
@@ -28,7 +28,7 @@ t_struct	*multi(t_struct **s, t_struct *e, int fd)
 		if (!e->next)
 		{
 			if (!(e->next = malloc(sizeof(t_struct))))
-				return (NULL + 1);
+				return ((t_struct *)1);
 			e->next->fd = fd;
 			e->next->bf[0] = 0;
 			e->next->next = NULL;
@@ -48,7 +48,7 @@ int			get_next_line(const int fd, char **line)
 
 	if (line == NULL || (*line = ft_strdup("")) == 0)
 		return (-1);
-	if ((e = multi(&s, 0, fd)) == 0 || e == NULL + 1)
+	if ((e = multi(&s, 0, fd)) == 0 || e == (t_struct *)1)
 		return (e == 0 ? 0 : -1);
 	while (e->d == 0)
 	{
